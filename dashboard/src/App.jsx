@@ -60,7 +60,7 @@ function App() {
         e.preventDefault();
         setAuthError('');
         try {
-            const res = await fetch('http://localhost:3000/api/login', {
+            const res = await fetch('https://sbnri-qa-dashboard.onrender.com/api/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ userId: userIdInput, password: passwordInput })
@@ -87,7 +87,7 @@ function App() {
         e.preventDefault();
         setAuthError('');
         try {
-            const res = await fetch('http://localhost:3000/api/change-password', {
+            const res = await fetch('https://sbnri-qa-dashboard.onrender.com/api/change-password', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ userId: userIdInput, oldPassword: passwordInput, newPassword: newPasswordInput })
@@ -114,7 +114,7 @@ function App() {
             setIsInviting(true);
             setInviteSuccessMsg('');
             try {
-                const res = await fetch('http://localhost:3000/api/invite', {
+                const res = await fetch('https://sbnri-qa-dashboard.onrender.com/api/invite', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email: inviteEmail })
