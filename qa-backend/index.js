@@ -95,11 +95,10 @@ app.post('/api/invite', async (req, res) => {
 
     // 3. Send the Email
     try {
-        let info = await transporter.sendMail({
-            from: '"SBNRI QA Center" <qa@sbnri.com>',
-            to: email,
-            subject: "Your Invite to the SBNRI QA Dashboard",
-            html: `
+        if (process.env.RESEND_API_KEY) {
+            console.log("Using Resend HTTP API to bypass Render SMTP block...");
+
+            const emailHtml = `
                 <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 10px;">
                     <h2 style="color: #4f46e5; text-align: center;">Welcome to the SBNRI QA Center!</h2>
                     <p>You have been invited to access our internal PR analysis and automated test orchestration dashboard.</p>
@@ -112,24 +111,72 @@ app.post('/api/invite', async (req, res) => {
                     </p>
                     <p style="color: #64748b; font-size: 12px; text-align: center; margin-top: 30px;">Confidential Internal Access Only. Do not share these credentials.</p>
                 </div>
-            `
-        });
+            `;
 
-        console.log("Message sent to:", email);
-        console.log("Message ID: %s", info.messageId);
+            const resendResponse = await fetch('https://api.resend.com/emails', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${process.env.RESEND_API_KEY}`
+                },
+                body: JSON.stringify({
+                    from: "SBNRI QA Center <onboarding@resend.dev>",
+                    to: email,
+                    subject: "Your Invite to the SBNRI QA Dashboard",
+                    html: emailHtml
+                })
+            });
 
-        // Ethereal gives us a fake webmail inbox URL to see the email
-        const previewUrl = nodemailer.getTestMessageUrl(info);
-        if (previewUrl) {
-            console.log("Preview URL: %s", previewUrl);
+            const resendData = await resendResponse.json();
+
+            if (!resendResponse.ok) {
+                console.error("Resend API Error:", resendData);
+                throw new Error(resendData.message || "Resend API Request Failed");
+            }
+
+            console.log("Message successfully sent via Resend API:", resendData.id);
+            res.json({
+                success: true,
+                message: "Invite email sent via Resend HTTP API!"
+            });
+
+        } else {
+            console.log("No RESEND_API_KEY found. Falling back to SMTP...");
+            let info = await transporter.sendMail({
+                from: '"SBNRI QA Center" <qa@sbnri.com>',
+                to: email,
+                subject: "Your Invite to the SBNRI QA Dashboard",
+                html: `
+                    <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 10px;">
+                        <h2 style="color: #4f46e5; text-align: center;">Welcome to the SBNRI QA Center!</h2>
+                        <p>You have been invited to access our internal PR analysis and automated test orchestration dashboard.</p>
+                        <div style="background: #f8fafc; padding: 20px; border-radius: 8px; margin: 24px 0; border: 1px solid #e2e8f0;">
+                            <p style="margin: 0; font-size: 16px;"><strong>Your Internal User ID:</strong> <span style="font-family: monospace; color: #1e293b;">${newUserId}</span></p>
+                            <p style="margin: 12px 0 0; font-size: 16px;"><strong>Your Live Password:</strong> <span style="font-family: monospace; color: #1e293b; background: #e2e8f0; padding: 4px 8px; border-radius: 4px;">${newPassword}</span></p>
+                        </div>
+                        <p style="text-align: center; margin-top: 30px;">
+                            <a href="https://nilanjan-sbnri-qa.github.io/sbnri-qa-dashboard" style="display: inline-block; padding: 12px 24px; background: #4f46e5; color: white; text-decoration: none; border-radius: 5px; font-weight: bold;">Launch QA Dashboard</a>
+                        </p>
+                        <p style="color: #64748b; font-size: 12px; text-align: center; margin-top: 30px;">Confidential Internal Access Only. Do not share these credentials.</p>
+                    </div>
+                `
+            });
+
+            console.log("Message sent to:", email);
+            console.log("Message ID: %s", info.messageId);
+
+            // Ethereal gives us a fake webmail inbox URL to see the email
+            const previewUrl = nodemailer.getTestMessageUrl(info);
+            if (previewUrl) {
+                console.log("Preview URL: %s", previewUrl);
+            }
+
+            res.json({
+                success: true,
+                message: "Invite email sent!",
+                previewUrl // We send this back to the frontend just so the user can see the email in testing
+            });
         }
-
-        res.json({
-            success: true,
-            message: "Invite email sent!",
-            previewUrl // We send this back to the frontend just so the user can see the email in testing
-        });
-
     } catch (e) {
         console.error("Error sending email:", e);
         res.status(500).json({ success: false, message: "Failed to send the email." });
