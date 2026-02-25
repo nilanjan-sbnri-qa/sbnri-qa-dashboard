@@ -31,12 +31,30 @@ function App() {
     };
 
     const [activeFilter, setActiveFilter] = useState('All');
+    const [searchQuery, setSearchQuery] = useState('');
 
     const filteredPrs = React.useMemo(() => {
-        if (activeFilter === 'All') return prs;
-        if (activeFilter === 'Action Needed') return prs.filter(pr => pr.status === 'Un-tested');
-        return prs.filter(pr => pr.platform === activeFilter);
-    }, [prs, activeFilter]);
+        let result = prs;
+
+        if (activeFilter !== 'All') {
+            if (activeFilter === 'Action Needed') {
+                result = result.filter(pr => pr.status === 'Un-tested');
+            } else {
+                result = result.filter(pr => pr.platform === activeFilter);
+            }
+        }
+
+        if (searchQuery.trim() !== '') {
+            const query = searchQuery.toLowerCase();
+            result = result.filter(pr =>
+                pr.title.toLowerCase().includes(query) ||
+                pr.author.toLowerCase().includes(query) ||
+                (1000 + pr.id).toString().includes(query)
+            );
+        }
+
+        return result;
+    }, [prs, activeFilter, searchQuery]);
 
     const handleLogin = async (e) => {
         e.preventDefault();
@@ -410,7 +428,13 @@ function App() {
                         <h2 className="text-xl font-bold text-slate-900 tracking-tight">Active Pull Requests</h2>
                         <div className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-center w-full sm:w-auto">
                             <div className="relative w-full sm:w-auto">
-                                <input type="text" placeholder="Search PRs..." className="pl-10 pr-4 py-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-900 focus:border-blue-900 outline-none w-full sm:w-64 transition-all" />
+                                <input
+                                    type="text"
+                                    placeholder="Search PRs..."
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    className="pl-10 pr-4 py-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-900 focus:border-blue-900 outline-none w-full sm:w-64 transition-all"
+                                />
                                 <svg className="w-4 h-4 text-slate-400 absolute left-4 top-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                             </div>
                             <button className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-bold rounded-lg text-white bg-blue-900 hover:bg-blue-800 shadow-sm transition-all duration-200 w-full sm:w-auto">
