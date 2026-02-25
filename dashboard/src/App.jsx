@@ -330,9 +330,9 @@ function App() {
                                     disabled={inviteStatus !== 'idle'}
                                     className={`w-full flex justify-center py-2.5 rounded-lg font-bold text-white transition ${inviteStatus !== 'idle' ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-900 hover:bg-blue-800'}`}
                                 >
-                                    {inviteStatus === 'idle' && 'Generate & Email Password'}
-                                    {inviteStatus === 'generating' && 'Generating secure credentials...'}
-                                    {inviteStatus === 'sending' && 'Checking SMTP & Sending email...'}
+                                    {inviteStatus === 'idle' && 'Generate & Email Credential'}
+                                    {inviteStatus === 'generating' && 'Generating Credential...'}
+                                    {inviteStatus === 'sending' && 'Sending Credential...'}
                                 </button>
                             </form>
                         )}
