@@ -12,7 +12,7 @@ function App() {
     const [showInviteModal, setShowInviteModal] = useState(false);
     const [inviteEmail, setInviteEmail] = useState('');
     const [inviteSuccessMsg, setInviteSuccessMsg] = useState('');
-    const [isInviting, setIsInviting] = useState(false);
+    const [inviteStatus, setInviteStatus] = useState('idle'); // 'idle', 'generating', 'sending'
 
     // Dummy PR data
     const [prs] = useState([
@@ -111,9 +111,13 @@ function App() {
     const handleInvite = async (e) => {
         e.preventDefault();
         if (inviteEmail) {
-            setIsInviting(true);
+            setInviteStatus('generating');
             setInviteSuccessMsg('');
             try {
+                // Simulate credential generation delay for better UX flow
+                await new Promise(resolve => setTimeout(resolve, 800));
+                setInviteStatus('sending');
+
                 const res = await fetch('https://sbnri-qa-dashboard.onrender.com/api/invite', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -135,7 +139,7 @@ function App() {
             } catch (e) {
                 setInviteSuccessMsg('Server error. Backend running?');
             }
-            setIsInviting(false);
+            setInviteStatus('idle');
         }
     };
 
@@ -291,7 +295,7 @@ function App() {
                         <div className="flex justify-between items-center mb-4">
                             <h3 className="text-lg font-bold text-slate-900">Invite Team Member</h3>
                             <button
-                                onClick={() => { setShowInviteModal(false); setInviteSuccessMsg(''); setIsInviting(false); }}
+                                onClick={() => { setShowInviteModal(false); setInviteSuccessMsg(''); setInviteStatus('idle'); }}
                                 className="text-slate-400 hover:text-slate-600 focus:outline-none"
                             >
                                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
@@ -310,10 +314,12 @@ function App() {
                                 </div>
                                 <button
                                     type="submit"
-                                    disabled={isInviting}
-                                    className={`w-full flex justify-center py-2.5 rounded-lg font-bold text-white transition ${isInviting ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-900 hover:bg-blue-800'}`}
+                                    disabled={inviteStatus !== 'idle'}
+                                    className={`w-full flex justify-center py-2.5 rounded-lg font-bold text-white transition ${inviteStatus !== 'idle' ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-900 hover:bg-blue-800'}`}
                                 >
-                                    {isInviting ? 'Sending Secure Email...' : 'Generate & Email Password'}
+                                    {inviteStatus === 'idle' && 'Generate & Email Password'}
+                                    {inviteStatus === 'generating' && 'Generating secure credentials...'}
+                                    {inviteStatus === 'sending' && 'Checking SMTP & Sending email...'}
                                 </button>
                             </form>
                         )}
