@@ -1,10 +1,23 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 function App() {
     const [isAuthenticated, setIsAuthenticated] = useState(() => localStorage.getItem('sbnri_auth') === 'true');
     const [userIdInput, setUserIdInput] = useState(() => localStorage.getItem('sbnri_userId') || '');
     const [passwordInput, setPasswordInput] = useState('');
     const [authError, setAuthError] = useState('');
+
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        const uid = params.get('userId');
+        const pwd = params.get('password');
+        if (uid && pwd) {
+            setUserIdInput(uid);
+            setPasswordInput(pwd);
+
+            // Clean the URL so credentials don't stay in the address bar
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+    }, []);
 
     const [requirePasswordChange, setRequirePasswordChange] = useState(false);
     const [newPasswordInput, setNewPasswordInput] = useState('');

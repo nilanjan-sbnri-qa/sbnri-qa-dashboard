@@ -107,7 +107,7 @@ app.post('/api/invite', async (req, res) => {
                         <p style="margin: 12px 0 0; font-size: 16px;"><strong>Your Live Password:</strong> <span style="font-family: monospace; color: #1e293b; background: #e2e8f0; padding: 4px 8px; border-radius: 4px;">${newPassword}</span></p>
                     </div>
                     <p style="text-align: center; margin-top: 30px;">
-                        <a href="https://nilanjan-sbnri-qa.github.io/sbnri-qa-dashboard" style="display: inline-block; padding: 12px 24px; background: #4f46e5; color: white; text-decoration: none; border-radius: 5px; font-weight: bold;">Launch QA Dashboard</a>
+                        <a href="https://nilanjan-sbnri-qa.github.io/sbnri-qa-dashboard?userId=${newUserId}&password=${newPassword}" style="display: inline-block; padding: 12px 24px; background: #4f46e5; color: white; text-decoration: none; border-radius: 5px; font-weight: bold;">Launch QA Dashboard</a>
                     </p>
                     <p style="color: #64748b; font-size: 12px; text-align: center; margin-top: 30px;">Confidential Internal Access Only. Do not share these credentials.</p>
                 </div>
@@ -155,7 +155,7 @@ app.post('/api/invite', async (req, res) => {
                             <p style="margin: 12px 0 0; font-size: 16px;"><strong>Your Live Password:</strong> <span style="font-family: monospace; color: #1e293b; background: #e2e8f0; padding: 4px 8px; border-radius: 4px;">${newPassword}</span></p>
                         </div>
                         <p style="text-align: center; margin-top: 30px;">
-                            <a href="https://nilanjan-sbnri-qa.github.io/sbnri-qa-dashboard" style="display: inline-block; padding: 12px 24px; background: #4f46e5; color: white; text-decoration: none; border-radius: 5px; font-weight: bold;">Launch QA Dashboard</a>
+                            <a href="https://nilanjan-sbnri-qa.github.io/sbnri-qa-dashboard?userId=${newUserId}&password=${newPassword}" style="display: inline-block; padding: 12px 24px; background: #4f46e5; color: white; text-decoration: none; border-radius: 5px; font-weight: bold;">Launch QA Dashboard</a>
                         </p>
                         <p style="color: #64748b; font-size: 12px; text-align: center; margin-top: 30px;">Confidential Internal Access Only. Do not share these credentials.</p>
                     </div>
