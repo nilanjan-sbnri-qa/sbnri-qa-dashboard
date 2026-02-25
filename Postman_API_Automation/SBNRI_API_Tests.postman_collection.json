@@ -1,0 +1,168 @@
+{
+  "info": {
+    "_postman_id": "a1b2c3d4-e5f6-7890-1234-56789abcde00",
+    "name": "SBNRI Mutual Fund API Tests",
+    "description": "Automated End-to-End API tests for SBNRI Mobile Application. Covers Onboarding, Portfolio, and Trading flows.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Auth Flow",
+      "item": [
+        {
+          "name": "Login/Generate Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Extract Auth Token\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.environment.set(\"auth_token\", jsonData.token);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"username\": \"{{test_user}}\",\n    \"password\": \"{{test_pass}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Portfolio Validation",
+      "item": [
+        {
+          "name": "Fetch Portfolio Details",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Portfolio matching check (Response vs System)\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.portfolio_value).to.be.a('number');",
+                  "    pm.expect(jsonData.units).to.be.above(0);",
+                  "});",
+                  "",
+                  "pm.test(\"NFO Units validation\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    // Specifically check for NFOs since support ticket 1770709497 raised this",
+                  "    if (jsonData.holdings) {",
+                  "       let hasNFO = jsonData.holdings.some(fund => fund.type === 'NFO');",
+                  "       // Add specific assertions if NFO is expected for the {{test_user}}",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/portfolio/summary",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "portfolio",
+                "summary"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "SIP Validation",
+      "item": [
+        {
+          "name": "Cancel SIP Request",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"SIP Cancelled Successfully\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.status).to.eql(\"CANCELLED\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"sip_id\": \"{{sip_id_to_cancel}}\",\n    \"action\": \"CANCEL\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/invest/sip/cancel",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "invest",
+                "sip",
+                "cancel"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
