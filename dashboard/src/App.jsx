@@ -346,7 +346,7 @@ function App() {
                 <header className="mb-12 text-center md:text-left flex flex-col md:flex-row justify-between items-center gap-6">
                     <div>
                         <h1 className="text-3xl font-black tracking-tight text-slate-900 sm:text-4xl mb-2">
-                            <span className="text-blue-900">SBNRI</span> QA Center
+                            <span className="text-blue-900">SBNRI</span> QA Dashboard
                         </h1>
                         <p className="text-base font-medium text-slate-500 max-w-2xl">
                             Intelligent test orchestration & PR monitoring dashboard.
