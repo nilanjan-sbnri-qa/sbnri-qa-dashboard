@@ -27,13 +27,36 @@ function App() {
     const [inviteSuccessMsg, setInviteSuccessMsg] = useState('');
     const [inviteStatus, setInviteStatus] = useState('idle'); // 'idle', 'generating', 'sending'
 
-    // Dummy PR data
-    const [prs] = useState([
-        { id: 1, title: 'Fix KYC OTP Issue', author: 'dev-john', platform: 'Backend', status: 'Un-tested', date: '2026-02-23' },
-        { id: 2, title: 'Update Mutual Fund List UI', author: 'dev-jane', platform: 'Android', status: 'Merged', date: '2026-02-23' },
-        { id: 3, title: 'iOS SIP Flow Error', author: 'dev-mark', platform: 'iOS', status: 'Open', date: '2026-02-22' },
-        { id: 4, title: 'Optimize Portfolio Query', author: 'dev-alice', platform: 'Backend', status: 'Tested', date: '2026-02-22' },
-    ]);
+    // Dynamic PR data
+    const [prs, setPrs] = useState([]);
+    const [isLoadingPRs, setIsLoadingPRs] = useState(false);
+    const [prError, setPrError] = useState(null);
+
+    useEffect(() => {
+        if (isAuthenticated) {
+            fetchPRs();
+        }
+    }, [isAuthenticated]);
+
+    const fetchPRs = async () => {
+        setIsLoadingPRs(true);
+        setPrError(null);
+        try {
+            // Adjust the URL if deploying to production
+            const res = await fetch('http://localhost:3000/api/prs');
+            const data = await res.json();
+            if (data.success) {
+                setPrs(data.prs);
+            } else {
+                setPrError(data.message || 'Failed to fetch PRs.');
+            }
+        } catch (error) {
+            console.error("Error fetching PRs:", error);
+            setPrError('Cannot connect to QA backend.');
+        } finally {
+            setIsLoadingPRs(false);
+        }
+    };
 
     const stats = {
         total: prs.length,
@@ -473,7 +496,31 @@ function App() {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100">
-                                {filteredPrs.map((pr) => (
+                                {isLoadingPRs ? (
+                                    <tr>
+                                        <td colSpan="5" className="px-4 py-8 text-center text-slate-500">
+                                            <div className="flex justify-center items-center gap-2">
+                                                <svg className="animate-spin h-5 w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                </svg>
+                                                <span>Loading PRs...</span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ) : prError ? (
+                                    <tr>
+                                        <td colSpan="5" className="px-4 py-8 text-center text-rose-500">
+                                            {prError}
+                                        </td>
+                                    </tr>
+                                ) : filteredPrs.length === 0 ? (
+                                    <tr>
+                                        <td colSpan="5" className="px-4 py-8 text-center text-slate-500">
+                                            No Pull Requests found matching the current filters.
+                                        </td>
+                                    </tr>
+                                ) : filteredPrs.map((pr) => (
                                     <tr key={pr.id} className="hover:bg-indigo-50/30 transition-colors group cursor-pointer">
                                         <td className="px-4 sm:px-8 py-5 whitespace-nowrap">
                                             <div className="flex items-center gap-3">

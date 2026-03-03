@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const nodemailer = require('nodemailer');
 const crypto = require('crypto');
+const axios = require('axios');
 require('dotenv').config();
 
 const app = express();
@@ -203,6 +204,59 @@ app.post('/api/change-password', (req, res) => {
     }
 
     return res.status(401).json({ success: false, message: "Invalid current password." });
+});
+
+// Get PRs Endpoint
+app.get('/api/prs', async (req, res) => {
+    try {
+        const repoOwner = 'sbnri';
+        const repoName = 'sbnri-banking';
+        const githubToken = process.env.GITHUB_TOKEN;
+
+        if (!githubToken) {
+            return res.status(500).json({ success: false, message: "GITHUB_TOKEN is not configured in backend." });
+        }
+
+        const response = await axios.get(
+            `https://api.github.com/repos/${repoOwner}/${repoName}/pulls?state=all&per_page=50`,
+            {
+                headers: {
+                    'Authorization': `Bearer ${githubToken}`,
+                    'Accept': 'application/vnd.github.v3+json'
+                }
+            }
+        );
+
+        const prData = response.data.map(pr => {
+            let status = 'Open';
+            if (pr.merged_at) {
+                status = 'Merged';
+            } else if (pr.state === 'open') {
+                status = 'Un-tested';
+            } else if (pr.state === 'closed') {
+                status = 'Tested'; // Example mapping for closed but not merged
+            }
+
+            return {
+                id: pr.number,
+                title: pr.title,
+                author: pr.user.login,
+                platform: 'Backend', // Hardcoded for this repo
+                status: status,
+                date: pr.created_at.substring(0, 10)
+            };
+        });
+
+        return res.json({ success: true, prs: prData });
+
+    } catch (error) {
+        if (error.response) {
+            console.error("GitHub API Error Response:", error.response.status, error.response.data);
+        } else {
+            console.error("Error fetching PRs from GitHub:", error.message);
+        }
+        return res.status(500).json({ success: false, message: "Failed to fetch PRs from GitHub." });
+    }
 });
 
 const PORT = 3000;
